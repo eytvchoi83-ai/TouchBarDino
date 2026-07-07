@@ -4,6 +4,11 @@ import Foundation
 final class GameEngine {
     enum Phase { case idle, running, dead }
 
+    enum Event { case start, jump, land, die }
+
+    /// 효과음 등 게임 이벤트 알림
+    var onEvent: ((Event) -> Void)?
+
     struct Obstacle {
         var x: CGFloat
         let w: CGFloat
@@ -44,7 +49,10 @@ final class GameEngine {
         case .idle:
             start()
         case .running:
-            if jumpOffset <= 0 { velocity = jumpVelocity }
+            if jumpOffset <= 0 {
+                velocity = jumpVelocity
+                onEvent?(.jump)
+            }
         case .dead:
             // 죽는 순간 연타하던 탭이 곧바로 재시작으로 새지 않게 잠깐 잠금
             if Date().timeIntervalSince(diedAt) > 0.35 { start() }
@@ -63,6 +71,7 @@ final class GameEngine {
         velocity = 0
         spawnIn = 70
         phase = .running
+        onEvent?(.start)
         Log.info("game started")
     }
 
@@ -74,7 +83,10 @@ final class GameEngine {
         if jumpOffset > 0 || velocity > 0 {
             velocity -= gravity
             jumpOffset = max(0, jumpOffset + velocity)
-            if jumpOffset == 0 { velocity = 0 }
+            if jumpOffset == 0 {
+                velocity = 0
+                onEvent?(.land)
+            }
         }
 
         speed = min(maxSpeed, speed + 0.0009)
@@ -94,6 +106,7 @@ final class GameEngine {
             phase = .dead
             diedAt = Date()
             hiScore = max(hiScore, Int(score))
+            onEvent?(.die)
             Log.info("game over: score \(Int(score)) hi \(hiScore)")
             break
         }

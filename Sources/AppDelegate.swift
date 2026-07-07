@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let gameWindow = GameWindowController()
     private let engine = GameEngine()
     private let renderer = GameRenderer()
+    private let sound = SoundPlayer()
     private var statusItem: NSStatusItem!
     private var timer: Timer?
     private var lastActivityPing = Date.distantPast
@@ -14,6 +15,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var showWindow: Bool {
         get { UserDefaults.standard.object(forKey: "showGameWindow") as? Bool ?? true }
         set { UserDefaults.standard.set(newValue, forKey: "showGameWindow") }
+    }
+    private var sfxEnabled: Bool {
+        get { UserDefaults.standard.object(forKey: "sfxEnabled") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "sfxEnabled") }
+    }
+    private var bgmEnabled: Bool {
+        get { UserDefaults.standard.object(forKey: "bgmEnabled") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "bgmEnabled") }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -26,6 +35,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         gameWindow.onTap = { [weak self] in self?.engine.tap() }
         if showWindow { gameWindow.show() }
+
+        sound.sfxEnabled = sfxEnabled
+        sound.bgmEnabled = bgmEnabled
+        engine.onEvent = { [weak self] event in
+            switch event {
+            case .jump: self?.sound.play(.jump)
+            case .land: self?.sound.play(.land)
+            case .die: self?.sound.play(.die)
+            case .start: break
+            }
+        }
 
         let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
             self?.tick()
@@ -43,10 +63,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func tick() {
         touchBarController.ensureVisible(shouldShow: !userHidden)
-        // 터치바도 창도 안 보이면 게임 자동 일시정지
-        guard touchBarController.isPresented || gameWindow.isVisible else { return }
+        // 터치바도 창도 안 보이면 게임(과 음악) 자동 일시정지
+        guard touchBarController.isPresented || gameWindow.isVisible else {
+            sound.setBGMActive(false)
+            return
+        }
 
         engine.step()
+        sound.setBGMActive(engine.phase == .running)
         if engine.phase == .running { keepAwake() }
         if let image = renderer.render(engine: engine) {
             touchBarController.update(image: image)
@@ -95,6 +119,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         windowItem.state = gameWindow.isVisible ? .on : .off
         menu.addItem(windowItem)
 
+        let sfxItem = NSMenuItem(title: "효과음", action: #selector(toggleSfx), keyEquivalent: "")
+        sfxItem.target = self
+        sfxItem.state = sfxEnabled ? .on : .off
+        menu.addItem(sfxItem)
+
+        let bgmItem = NSMenuItem(title: "배경음악", action: #selector(toggleBgm), keyEquivalent: "")
+        bgmItem.target = self
+        bgmItem.state = bgmEnabled ? .on : .off
+        menu.addItem(bgmItem)
+
         let resetItem = NSMenuItem(title: "최고 기록 초기화", action: #selector(resetHiScore), keyEquivalent: "")
         resetItem.target = self
         resetItem.isEnabled = engine.hiScore > 0
@@ -132,6 +166,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             gameWindow.show()
             showWindow = true
         }
+    }
+
+    @objc private func toggleSfx() {
+        sfxEnabled.toggle()
+        sound.sfxEnabled = sfxEnabled
+    }
+
+    @objc private func toggleBgm() {
+        bgmEnabled.toggle()
+        sound.bgmEnabled = bgmEnabled
+        if !bgmEnabled { sound.setBGMActive(false) }
     }
 
     @objc private func resetHiScore() {
