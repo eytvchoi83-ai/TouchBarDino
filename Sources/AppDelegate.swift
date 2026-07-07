@@ -103,43 +103,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        menu.addItem(disabledItem("최고 기록: \(engine.hiScore)"))
+        menu.addItem(disabledItem(L10n.f("menu_hi", engine.hiScore)))
         menu.addItem(.separator())
 
         let showItem = NSMenuItem(
-            title: touchBarController.isPresented ? "터치바에서 숨기기" : "터치바에 게임 표시",
+            title: L10n.t(touchBarController.isPresented ? "menu_hide" : "menu_show"),
             action: #selector(toggleTouchBar), keyEquivalent: "g")
         showItem.target = self
         menu.addItem(showItem)
 
         let windowItem = NSMenuItem(
-            title: "화면에 게임 창 표시 (마우스로 플레이)",
+            title: L10n.t("menu_window"),
             action: #selector(toggleWindow), keyEquivalent: "m")
         windowItem.target = self
         windowItem.state = gameWindow.isVisible ? .on : .off
         menu.addItem(windowItem)
 
-        let sfxItem = NSMenuItem(title: "효과음", action: #selector(toggleSfx), keyEquivalent: "")
+        let sfxItem = NSMenuItem(title: L10n.t("menu_sfx"), action: #selector(toggleSfx), keyEquivalent: "")
         sfxItem.target = self
         sfxItem.state = sfxEnabled ? .on : .off
         menu.addItem(sfxItem)
 
-        let bgmItem = NSMenuItem(title: "배경음악", action: #selector(toggleBgm), keyEquivalent: "")
+        let bgmItem = NSMenuItem(title: L10n.t("menu_bgm"), action: #selector(toggleBgm), keyEquivalent: "")
         bgmItem.target = self
         bgmItem.state = bgmEnabled ? .on : .off
         menu.addItem(bgmItem)
 
-        let resetItem = NSMenuItem(title: "최고 기록 초기화", action: #selector(resetHiScore), keyEquivalent: "")
+        let resetItem = NSMenuItem(title: L10n.t("menu_reset"), action: #selector(resetHiScore), keyEquivalent: "")
         resetItem.target = self
         resetItem.isEnabled = engine.hiScore > 0
         menu.addItem(resetItem)
         menu.addItem(.separator())
 
-        let log = NSMenuItem(title: "로그 열기", action: #selector(openLog), keyEquivalent: "")
+        let log = NSMenuItem(title: L10n.t("menu_log"), action: #selector(openLog), keyEquivalent: "")
         log.target = self
         menu.addItem(log)
         menu.addItem(NSMenuItem(
-            title: "종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+            title: L10n.t("menu_quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
     }
 
     private func disabledItem(_ title: String) -> NSMenuItem {

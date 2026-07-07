@@ -121,12 +121,12 @@ final class GameRenderer {
         let message: String
         var color = textColor
         switch engine.phase {
-        case .idle: message = "탭/클릭 = 시작 · 달리는 중 탭/클릭 = 점프"
-        case .dead: message = "GAME OVER · 탭/클릭 = 재시작"
+        case .idle: message = L10n.t("ov_idle")
+        case .dead: message = L10n.t("ov_dead")
         case .running:
             // 시작 직후 2초 동안 조작법 힌트를 흐리게 보여준다
             guard engine.score < 18 else { return }
-            message = "탭/클릭 = 점프"
+            message = L10n.t("ov_hint")
             color = dimTextColor
         }
         let attrs: [NSAttributedString.Key: Any] = [
