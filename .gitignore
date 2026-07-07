@@ -1,0 +1,5 @@
+.build/
+TouchBarDino.app/
+*.zip
+*.log
+.DS_Store
