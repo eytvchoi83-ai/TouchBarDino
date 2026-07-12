@@ -1,5 +1,7 @@
 # 터치바 공룡 (TouchBarDino)
 
+**한국어** · [English](README.en.md)
+
 > **TouchBarDino** — An endless runner that lives on your MacBook's Touch Bar.
 > Tap the strip to jump. That's the whole game.
 
